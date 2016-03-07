@@ -1,6 +1,6 @@
 {
   "name": "sharepoint-file",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Sharepoint file operations",
   "author": "Zarko Hristovski <zarko@timegrip.no>",
   "license": "MIT",
