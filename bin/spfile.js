@@ -14,7 +14,7 @@ const
 
 function login ( host_url ) {
   return new Promise( ( resolve, reject ) => {
-    let jar = read_cookie_jar();
+    let jar = get_cookie_jar();
     if ( jar ) {
       resolve( jar );
       return;
@@ -26,7 +26,7 @@ function login ( host_url ) {
           return reject( err );
         }
         resolve( create_cookie_jar(
-          host_url, result.cookies.FedAuth, result.cookies.rtFa, true
+          host_url, result.cookies.FedAuth, result.cookies.rtFa
         ));
       });
     });
@@ -43,7 +43,9 @@ function query_credentials () {
   });
 }
 
-function read_cookie_jar () {
+function get_cookie_jar ( opts ) {
+  opts = opts || {};
+  opts.new && fs.openSync( cookie_store, 'w' );
   try {
     return request.jar( new FileCookieStore( cookie_store ) );
   }
@@ -52,15 +54,8 @@ function read_cookie_jar () {
   }
 }
 
-function create_cookie_jar ( url, fed_auth, rt_fa, persistent ) {
-  let jar;
-  if ( persistent ) {
-    fs.openSync( cookie_store, 'w' );
-    jar = read_cookie_jar();
-  }
-  else {
-    jar = request.jar();
-  }
+function create_cookie_jar ( url, fed_auth, rt_fa ) {
+  let jar = get_cookie_jar({new : true});
   jar.setCookie( request.cookie( `FedAuth=${fed_auth}` ), url );
   jar.setCookie( request.cookie( `rtFa=${rt_fa}`       ), url );
   return jar;
