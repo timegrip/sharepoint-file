@@ -15,7 +15,7 @@
   "dependencies": {
     "inquirer": "^0.12.0",
     "request": "^2.69.0",
-    "sharepoint-auth": "github:timegrip/sharepoint-auth#win_os_improvements",
-    "tough-cookie-filestore": "0.0.1"
+    "sharepoint-auth": "github:timegrip/sharepoint-auth",
+    "tough-cookie-filestore": "^0.0.1"
   }
 }
