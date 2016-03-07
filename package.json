@@ -1,0 +1,11 @@
+{
+  "name": "sharepoint-file",
+  "version": "1.0.0",
+  "description": "Sharepoint file operations",
+  "author": "Zarko Hristovski <zarko@timegrip.no>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/timegrip/sharepoint-file.git"
+  }
+}
