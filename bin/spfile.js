@@ -10,7 +10,15 @@ const
   Sharepoint      = require( 'sharepoint-auth'        ),
   FileCookieStore = require( 'tough-cookie-filestore' ),
 
-  cookie_store = path.normalize( `${__dirname}/.sharepoint-cookies.json` );
+  get_cookie_path = ( opts ) => {
+    opts = opts || {};
+    let cookie_dir = path.join(
+      process.env.HOME || process.env.USERPROFILE || process.env.HOMEPATH,
+      '.sharepoint-file'
+    );
+    ! fs.existsSync( cookie_dir ) && fs.mkdirSync( cookie_dir );
+    return opts.only_dir ? cookie_dir : path.join( cookie_dir, 'cookies.json' );
+  };
 
 function login ( host_url ) {
   return new Promise( ( resolve, reject ) => {
@@ -45,9 +53,9 @@ function query_credentials () {
 
 function get_cookie_jar ( opts ) {
   opts = opts || {};
-  opts.new && fs.openSync( cookie_store, 'w' );
+  opts.new && fs.openSync( get_cookie_path(), 'w' );
   try {
-    return request.jar( new FileCookieStore( cookie_store ) );
+    return request.jar( new FileCookieStore( get_cookie_path() ) );
   }
   catch ( e ) {
     return undefined;
@@ -63,7 +71,9 @@ function create_cookie_jar ( url, fed_auth, rt_fa ) {
 
 let command = process.argv[ 2 ];
 command = command ? command.trim().toLowerCase() : '';
-if ( command.length && [ 'login', 'logout', 'fetch' ].indexOf( command ) === -1 ) {
+if ( command.length && [
+  'cleanup', 'login', 'logout', 'fetch'
+].indexOf( command ) === -1 ) {
   console.log( 'Command not found.' );
   process.exit( 1 );
 }
@@ -75,14 +85,25 @@ let
   file_name = file_path ? file_path.split( '/' ).slice( -1 ).toString() : '';
 
 if ( command === 'login' ) {
-  login( host_url ).then( () => console.log( 'ok' ) ).catch(
+  login( host_url ).then( () => console.log( 'Logged in.' ) ).catch(
     e => console.log( e )
   );
   return;
 }
 
+if ( command === 'cleanup' ) {
+  require( 'child_process' ).execSync(
+    `${process.platform.startsWith( 'win' ) ? 'rmdir /s/q' : 'rm -rf' } ${get_cookie_path({ only_dir : true })}`
+  );
+  return;
+}
+
 if ( command === 'logout' ) {
-  fs.unlink( cookie_store );
+  try {
+    fs.unlinkSync( get_cookie_path() );
+    console.log( 'Logged out.' );
+  }
+  catch ( e ) {}
   return;
 }
 
