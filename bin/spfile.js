@@ -19,10 +19,47 @@ const
 let command = process.argv[ 2 ];
 command = command ? command.trim().toLowerCase() : '';
 if ( command.length && [
-  'cleanup', 'login', 'logout', 'fetch'
+  'cleanup', 'login', 'logout', 'fetch', '-h', '--help', '-v', '--ver', '--version'
 ].indexOf( command ) === -1 ) {
   console.log( 'Command not found.' );
   process.exit( 1 );
+}
+
+if ( [ '-v', '--ver', '--version' ].indexOf( command ) !== -1 ) {
+  console.log(`
+    sharepoint-file ver. ${require( '../package.json' ).version }
+  `);
+  return;
+}
+
+if ( ! command.length || [ '-h', '--help' ].indexOf( command ) !== -1 ) {
+  console.log(`
+    sharepoint-file ver. ${require( '../package.json' ).version }
+
+    - Fetch a file and show its content:
+
+      $ spfile fetch <sharepoint file url>
+
+      Example: spfile fetch https://your.sharepoint.com/path/foo.json
+
+    - Fetch a file and save it:
+
+      $ spfile fetch <sharepoint file url> <file destination path>
+
+      Example: spfile fetch https://your.sharepoint.com/path/bar.pdf bar.pdf
+
+    If you haven't already authenticated or your Sharepoint session has expired,
+    you'll be asked to log in.
+
+    - For explicit logout or login use the corresponding command:
+
+      $ spfile logout
+
+      $ spfile login <sharepoint host url>
+
+      Example: spfile login https://your.sharepoint.com
+  `);
+  return;
 }
 
 if ( command === 'cleanup' ) {
