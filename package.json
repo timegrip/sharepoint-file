@@ -2,7 +2,15 @@
   "name": "sharepoint-file",
   "version": "1.0.6",
   "description": "Sharepoint file operations",
+  "homepage": "https://www.npmjs.com/package/sharepoint-file",
   "author": "Zarko Hristovski <zarko@timegrip.no>",
+  "contributors": [
+    {
+      "name": "Zarko Hristovski",
+      "email": "zarko@timegrip.no",
+      "web": "https://twitter.com/zarkoh"
+    }
+  ],
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -23,5 +31,13 @@
     "sharepoint-auth": "github:timegrip/sharepoint-auth",
     "tough-cookie-filestore": "^0.0.1",
     "xml2js": "^0.4.16"
-  }
+  },
+  "keywords": [
+    "sharepoint",
+    "office",
+    "file",
+    "download",
+    "auth",
+    "command"
+  ]
 }

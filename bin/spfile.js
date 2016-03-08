@@ -37,7 +37,7 @@ if ( ! command.length || [ '-h', '--help' ].indexOf( command ) !== -1 ) {
   console.log(`
     sharepoint-file ver. ${require( '../package.json' ).version }
 
-    - Fetch a file and show its content:
+    - Fetch a file (shows its content):
 
       $ spfile fetch <sharepoint file url>
 
@@ -49,8 +49,9 @@ if ( ! command.length || [ '-h', '--help' ].indexOf( command ) !== -1 ) {
 
       Example: spfile fetch https://your.sharepoint.com/path/bar.pdf bar.pdf
 
-    If you haven't already authenticated or your Sharepoint session has expired,
-    you'll be asked to log in.
+      If you haven't already authenticated or your session has expired,
+      you'll be asked to log in by typing in your Sharepoint/Office 365
+      email address and password.
 
     - For explicit logout or login use the corresponding command:
 
@@ -59,6 +60,10 @@ if ( ! command.length || [ '-h', '--help' ].indexOf( command ) !== -1 ) {
       $ spfile login <sharepoint host url>
 
       Example: spfile login https://your.sharepoint.com
+
+    - Show usage instruction:
+
+      $ spfile (--help)
   `);
   return;
 }
