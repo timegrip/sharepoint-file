@@ -173,7 +173,7 @@ if ( command === 'login' ) {
 
 if ( command === 'fetch' ) {
   login( host_url ).then( jar => {
-    console.log( `Fetching...` );
+    output_path.length && console.log( `Fetching file...` );
     request({
       url : `${host_url}/_api/web/GetFileByServerRelativeUrl('${parsed.path}')/$value`,
       jar : jar
@@ -184,9 +184,10 @@ if ( command === 'fetch' ) {
       }
       if ( output_path.length ) {
         response.pipe(
-          fs.createWriteStream( output_path )
+          fs.createWriteStream( output_path ).on( 'finish', () => console.log(
+            `Saved to ${output_path} (${fs.statSync( output_path ).size} B).`
+          ))
         );
-        response.on( 'end', () => console.log( `Saved to ${output_path}` ) );
         return;
       }
       response.pipe( concat( buffer => {
