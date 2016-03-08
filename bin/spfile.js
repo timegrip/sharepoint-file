@@ -5,9 +5,12 @@ const
   fs              = require( 'fs'                     ),
   url             = require( 'url'                    ),
   path            = require( 'path'                   ),
+  parser          = require( 'xml2js'                 ),
+  concat          = require( 'concat-stream'          ),
   request         = require( 'request'                ),
   inquirer        = require( 'inquirer'               ),
   Sharepoint      = require( 'sharepoint-auth'        ),
+  istextorbinary  = require( 'istextorbinary'         ),
   FileCookieStore = require( 'tough-cookie-filestore' ),
 
   get_cookie_path = ( opts ) => {
@@ -31,7 +34,7 @@ function login ( host_url ) {
     query_credentials().then( credentials => {
       Sharepoint({ auth : credentials, host : host_url }, ( err, result ) => {
         if ( err ) {
-          return reject( err );
+          return reject( 'Login failed.' );
         }
         resolve( create_cookie_jar(
           host_url, result.cookies.FedAuth, result.cookies.rtFa
@@ -69,6 +72,21 @@ function create_cookie_jar ( url, fed_auth, rt_fa ) {
   return jar;
 }
 
+function parse_request_error ( response ) {
+  let default_msg = 'Could not download file.';
+  return new Promise( resolve => {
+    if ( ! response.headers[ 'content-type' ].includes( 'application/xml' ) ) {
+      return resolve( default_msg );
+    }
+    response.pipe( concat( buffer => {
+      parser.parseString(
+        buffer.toString(), { explicitArray : false }, ( err, result ) =>
+          resolve( err ? default_msg : result[ 'm:error' ][ 'm:message' ]._ )
+      );
+    }));
+  });
+}
+
 let command = process.argv[ 2 ];
 command = command ? command.trim().toLowerCase() : '';
 if ( command.length && [
@@ -79,10 +97,9 @@ if ( command.length && [
 }
 
 let
-  parsed = process.argv[ 3 ] ? url.parse( process.argv[ 3 ] ) : '',
-  host_url = `${parsed.protocol}//${parsed.host}`,
-  file_path = parsed.path,
-  file_name = file_path ? file_path.split( '/' ).slice( -1 ).toString() : '';
+  parsed      = process.argv[ 3 ] ? url.parse( process.argv[ 3 ] ) : '',
+  host_url    = `${parsed.protocol}//${parsed.host}`,
+  output_path = process.argv[ 4 ] ? process.argv[ 4 ] : '';
 
 if ( command === 'login' ) {
   login( host_url ).then( () => console.log( 'Logged in.' ) ).catch(
@@ -109,12 +126,31 @@ if ( command === 'logout' ) {
 
 if ( command === 'fetch' ) {
   login( host_url ).then( jar => {
+    console.log( `Fetching...` );
     request({
-      url : `${host_url}/_api/web/GetFileByServerRelativeUrl('${file_path}')/$value`,
+      url : `${host_url}/_api/web/GetFileByServerRelativeUrl('${parsed.path}')/$value`,
       jar : jar
-    }).on( 'error', err => console.log( err ) ).pipe(
-      fs.createWriteStream( path.resolve( process.cwd(), file_name ) )
-    );
+    }).on( 'error', err => console.log( err ) ).on( 'response', response => {
+      if ( response.statusCode !== 200 ) {
+        parse_request_error( response ).then( msg => console.log( msg ) );
+        return;
+      }
+      if ( output_path.length ) {
+        response.pipe(
+          fs.createWriteStream( output_path )
+        );
+        response.on( 'end', () => console.log( `Saved to ${output_path}` ) );
+        return;
+      }
+      response.pipe( concat( buffer => {
+        istextorbinary.isText( undefined, buffer, ( err, is_text ) =>
+          console.log( err || is_text
+            ? buffer.toString()
+            : 'Not going to show a binary file. Run the command to save it as a file.'
+          )
+        );
+      }));
+    });
   }).catch( e => console.log( e ) );
 
   return;
