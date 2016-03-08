@@ -2,6 +2,7 @@
 'use strict';
 
 const
+  os   = require( 'os'   ),
   fs   = require( 'fs'   ),
   url  = require( 'url'  ),
   path = require( 'path' ),
@@ -98,7 +99,9 @@ function login ( host_url ) {
     query_credentials().then( credentials => {
       Sharepoint({ auth : credentials, host : host_url }, ( err, result ) => {
         if ( err ) {
-          return reject( 'Login failed.' );
+          return reject(
+            `Login failed.${os.EOL}Check your host URL and login credentials, then try again.`
+          );
         }
         resolve( create_cookie_jar(
           host_url, result.cookies.FedAuth, result.cookies.rtFa
