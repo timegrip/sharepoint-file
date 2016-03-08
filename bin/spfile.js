@@ -2,16 +2,9 @@
 'use strict';
 
 const
-  fs              = require( 'fs'                     ),
-  url             = require( 'url'                    ),
-  path            = require( 'path'                   ),
-  parser          = require( 'xml2js'                 ),
-  concat          = require( 'concat-stream'          ),
-  request         = require( 'request'                ),
-  inquirer        = require( 'inquirer'               ),
-  Sharepoint      = require( 'sharepoint-auth'        ),
-  istextorbinary  = require( 'istextorbinary'         ),
-  FileCookieStore = require( 'tough-cookie-filestore' ),
+  fs   = require( 'fs'   ),
+  url  = require( 'url'  ),
+  path = require( 'path' ),
 
   get_cookie_path = ( opts ) => {
     opts = opts || {};
@@ -22,6 +15,40 @@ const
     ! fs.existsSync( cookie_dir ) && fs.mkdirSync( cookie_dir );
     return opts.only_dir ? cookie_dir : path.join( cookie_dir, 'cookies.json' );
   };
+
+let command = process.argv[ 2 ];
+command = command ? command.trim().toLowerCase() : '';
+if ( command.length && [
+  'cleanup', 'login', 'logout', 'fetch'
+].indexOf( command ) === -1 ) {
+  console.log( 'Command not found.' );
+  process.exit( 1 );
+}
+
+if ( command === 'cleanup' ) {
+  require( 'child_process' ).execSync(
+    `${process.platform.startsWith( 'win' ) ? 'rmdir /s/q' : 'rm -rf' } ${get_cookie_path({ only_dir : true })}`
+  );
+  return;
+}
+
+if ( command === 'logout' ) {
+  try {
+    fs.unlinkSync( get_cookie_path() );
+    console.log( 'Logged out.' );
+  }
+  catch ( e ) {}
+  return;
+}
+
+const
+  parser          = require( 'xml2js'                 ),
+  concat          = require( 'concat-stream'          ),
+  request         = require( 'request'                ),
+  inquirer        = require( 'inquirer'               ),
+  Sharepoint      = require( 'sharepoint-auth'        ),
+  istextorbinary  = require( 'istextorbinary'         ),
+  FileCookieStore = require( 'tough-cookie-filestore' );
 
 function login ( host_url ) {
   return new Promise( ( resolve, reject ) => {
@@ -87,15 +114,6 @@ function parse_request_error ( response ) {
   });
 }
 
-let command = process.argv[ 2 ];
-command = command ? command.trim().toLowerCase() : '';
-if ( command.length && [
-  'cleanup', 'login', 'logout', 'fetch'
-].indexOf( command ) === -1 ) {
-  console.log( 'Command not found.' );
-  process.exit( 1 );
-}
-
 let
   parsed      = process.argv[ 3 ] ? url.parse( process.argv[ 3 ] ) : '',
   host_url    = `${parsed.protocol}//${parsed.host}`,
@@ -105,22 +123,6 @@ if ( command === 'login' ) {
   login( host_url ).then( () => console.log( 'Logged in.' ) ).catch(
     e => console.log( e )
   );
-  return;
-}
-
-if ( command === 'cleanup' ) {
-  require( 'child_process' ).execSync(
-    `${process.platform.startsWith( 'win' ) ? 'rmdir /s/q' : 'rm -rf' } ${get_cookie_path({ only_dir : true })}`
-  );
-  return;
-}
-
-if ( command === 'logout' ) {
-  try {
-    fs.unlinkSync( get_cookie_path() );
-    console.log( 'Logged out.' );
-  }
-  catch ( e ) {}
   return;
 }
 
