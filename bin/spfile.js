@@ -85,10 +85,10 @@ if ( command === 'logout' ) {
 }
 
 const
+  read            = require( 'read'                   ),
   parser          = require( 'xml2js'                 ),
   concat          = require( 'concat-stream'          ),
   request         = require( 'request'                ),
-  inquirer        = require( 'inquirer'               ),
   Sharepoint      = require( 'sharepoint-auth'        ),
   istextorbinary  = require( 'istextorbinary'         ),
   FileCookieStore = require( 'tough-cookie-filestore' );
@@ -117,13 +117,21 @@ function login ( host_url ) {
 }
 
 function query_credentials () {
-  return new Promise( resolve => {
-    console.log( 'Please enter your Sharepoint credentials' );
-    inquirer.prompt([
-      { message : 'Email address :', name : 'username', type : 'input'    },
-      { message : 'Password      :', name : 'password', type : 'password' }
-    ], credentials => resolve( credentials ) );
-  });
+  console.log( 'Please enter your Sharepoint credentials' );
+  let query = ( read_opts ) =>
+    new Promise( ( resolve, reject ) =>
+      read( read_opts, ( err, result ) => err ? reject() : resolve( result ) )
+    );
+  return query({
+    prompt  : 'Email address :'
+  })
+  .then( username => query({
+    prompt  : 'Password      :',
+    silent  : true,
+    replace : '*'
+  })
+  .then( password => ({ username : username, password : password })))
+  .catch( () => process.exit( 1 ) );
 }
 
 function get_cookie_jar ( opts ) {
@@ -179,7 +187,10 @@ if ( command === 'fetch' ) {
       jar : jar
     }).on( 'error', err => console.log( err ) ).on( 'response', response => {
       if ( response.statusCode !== 200 ) {
-        parse_request_error( response ).then( msg => console.log( msg ) );
+        parse_request_error( response ).then( msg => {
+          console.log( msg );
+          process.exit( 1 );
+        });
         return;
       }
       if ( output_path.length ) {
