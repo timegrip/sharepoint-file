@@ -5,3 +5,6 @@
 
 # Unix shell files will always have LF line endings on checkout.
 *.sh eol=lf
+
+# Special case
+bin/spfile.js eol=lf
