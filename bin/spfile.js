@@ -8,7 +8,10 @@ const
   url  = require( 'url'  ),
   path = require( 'path' );
 
-if ( process.argv.slice( 2 ).map( arg => arg.toLowerCase() ).indexOf( 'logout' ) !== -1 ) {
+if (
+  process.argv.slice( 2 ).map( arg => arg.toLowerCase() ).indexOf( 'logout' ) !== -1
+    && process.argv.slice( 2 ).map( arg => arg.toLowerCase() ).indexOf( '--help' ) === -1
+) {
   require( 'child_process' ).execSync(
     `${process.platform.startsWith( 'win' ) ? 'rmdir /s/q' : 'rm -rf' } ${get_cookie_path({ dir : true })}`
   );
@@ -34,21 +37,24 @@ if ( ! cmd ) {
 
 if ( cmd.name === 'login' ) {
   login( extract( cmd.args, 'host_url' ) )
-    .then( () => console.log( 'Logged in.' ) )
-    .catch( e => console.log( e ) );
+    .then( result =>
+      ! cmd.silent && console.log( result.existing ? 'Already logged in.' : 'Logged in.' )
+    ).catch( e => console.error( e ) );
   return;
 }
 
 if ( cmd.name === 'fetch' ) {
-  login( extract( cmd.args, 'host_url' ) ).then( jar => {
-    cmd.args[ 1 ] && ! cmd.silent && console.log( `Fetching file...` );
+  login( extract( cmd.args, 'host_url' ) ).then( result => {
+    cmd.args[ 1 ] && ! cmd.silent && console.log( `Fetching file...`, `${extract( cmd.args, 'relative_url' )}/_api/web/GetFileByServerRelativeUrl('${url.parse( cmd.args[ 0 ] ).path}')/$value` );
     request({
-      url : `${extract( cmd.args, 'host_url' )}/_api/web/GetFileByServerRelativeUrl('${url.parse( cmd.args[ 0 ] ).path}')/$value`,
-      jar : jar
-    }).on( 'error', err => console.log( err ) ).on( 'response', response => {
+      url : `${extract( cmd.args, 'host_url' )}/_api/web/GetFileByServerRelativeUrl('${extract( cmd.args, 'relative_url' )}')/$value`,
+      jar : result.jar
+    })
+    .on( 'error', err => console.error( `${err.host} ${err.code}`.red.bold ) )
+    .on( 'response', response => {
       if ( response.statusCode !== 200 ) {
         parse_request_error( response ).then( msg => {
-          console.log( msg );
+          console.error( msg.red.bold );
           process.exit( 1 );
         });
         return;
@@ -72,7 +78,7 @@ if ( cmd.name === 'fetch' ) {
         );
       }));
     });
-  }).catch( e => console.log( e ) );
+  }).catch( e => console.error( e ) );
 
   return;
 }
@@ -81,8 +87,7 @@ function login ( host_url ) {
   return new Promise( ( resolve, reject ) => {
     let jar = get_cookie_jar();
     if ( jar ) {
-      resolve( jar );
-      return;
+      return resolve({ jar : jar, existing : true });
     }
 
     query_credentials().then( credentials => {
@@ -92,9 +97,11 @@ function login ( host_url ) {
             `Login failed.${os.EOL}Check your host URL and login credentials, then try again.`
           );
         }
-        resolve( create_cookie_jar(
-          host_url, result.cookies.FedAuth, result.cookies.rtFa
-        ));
+        resolve({
+          jar : create_cookie_jar(
+            host_url, result.cookies.FedAuth, result.cookies.rtFa
+          )
+        });
       });
     });
   });
@@ -164,7 +171,7 @@ function get_cookie_path ( opts ) {
 function parse ( args ) {
   let
     opts = {
-      'string'  : [ 'login', 'fetch' ],
+      'string'  : [ 'fetch', 'login', 'logout' ],
       'boolean' : [ 'silent', 'help', 'version' ],
       'default' : {
         'silent'  : false,
@@ -172,13 +179,13 @@ function parse ( args ) {
         'version' : false
       }
     },
-    argv = parseArgs( args, opts );
+    parsed = parseArgs( args, opts );
   return validate({
-    name    : argv._[ 0 ],
-    args    : argv._.slice( 1 ),
-    silent  : argv.silent,
-    help    : argv.help,
-    version : argv.version
+    name    : parsed._[ 0 ],
+    args    : parsed._.slice( 1 ),
+    silent  : parsed.silent,
+    help    : parsed.help,
+    version : parsed.version
   });
 
   function validate ( cmd ) {
@@ -196,12 +203,22 @@ function parse ( args ) {
       return show_info( cmd.silent, { cmd : cmd.name } );
     }
 
-    if ( cmd.name === 'login' && ! cmd.args.length ) {
-      return show_info( cmd.silent, { invalid : true, cmd : cmd.name } );
+    if ( cmd.name === 'login' ) {
+      if ( ! cmd.args.length ) {
+        return show_info( cmd.silent, { invalid : true, cmd : cmd.name } );
+      }
+      if ( ! extract( cmd.args, 'host_url' ) ) {
+        return show_info( cmd.silent, { invalid : true, cmd : cmd.name } );
+      }
     }
 
-    if ( cmd.name === 'fetch' && ! cmd.args.length ) {
-      return show_info( cmd.silent, { invalid : true, cmd : cmd.name } );
+    if ( cmd.name === 'fetch' ) {
+      if ( ! cmd.args.length ) {
+        return show_info( cmd.silent, { invalid : true, cmd : cmd.name } );
+      }
+      if ( ! extract( cmd.args, 'host_url' ) ) {
+        return show_info( cmd.silent, { invalid : true, cmd : cmd.name } );
+      }
     }
 
     return cmd;
@@ -211,7 +228,19 @@ function parse ( args ) {
 function extract ( args, name ) {
   if ( name === 'host_url' ) {
     let parsed = url.parse( args[ 0 ] );
-    return `${parsed.protocol}//${parsed.host}`;
+    if ( ! parsed.host && ( ! parsed.path || parsed.path === '/' ) ) {
+      return;
+    }
+    return [
+      `${ parsed.protocol ? parsed.protocol : 'https:' }`,
+      `//`,
+      `${ parsed.host ? parsed.host : parsed.path.split( '/' )[ 0 ] }`
+    ].join( '' );
+  }
+
+  if ( name === 'relative_url' ) {
+    let parsed = url.parse( args[ 0 ] );
+    return parsed.path.substr( parsed.path.indexOf( '/' ) );
   }
 }
 
@@ -225,7 +254,7 @@ function show_info ( silent, opts ) {
       ``,
       `Usage: spfile task args`,
       ``,
-      `========================`,
+      `=======================`,
       ``,
       `${'Available tasks:'.bold} (use --help for more info)`
     ],
@@ -248,7 +277,7 @@ function show_info ( silent, opts ) {
       login : {
         minimal : show_args =>
           `   ${'login '.green.bold + (show_args ? '<HOSTURL> '.green.bold + '..............' : ' ....')}`
-            + ` Authenticates explicitly with Sharepoint`.bold,
+            + ` Authenticates with Sharepoint explicitly`.bold,
         full : [
           `                                  <HOSTURL> The Sharpoint host URL`,
           ``,
@@ -270,7 +299,7 @@ function show_info ( silent, opts ) {
     return;
   }
   if ( opts.invalid ) {
-    console.log( `Invalid command or parameters${os.EOL}` );
+    console.log( `${'Invalid command or parameters'.red.bold}${os.EOL}` );
   }
   if ( opts.cmd ) {
     console.log(
