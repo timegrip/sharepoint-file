@@ -21,11 +21,13 @@
     "spfile": "./bin/spfile.js"
   },
   "scripts": {
-    "preuninstall": "node bin/spfile.js cleanup"
+    "preuninstall": "node bin/spfile.js logout"
   },
   "dependencies": {
+    "colors": "^1.1.2",
     "concat-stream": "^1.5.1",
     "istextorbinary": "^1.0.2",
+    "minimist": "^1.2.0",
     "read": "^1.0.7",
     "request": "^2.69.0",
     "sharepoint-auth": "github:timegrip/sharepoint-auth#v1.0.5",
