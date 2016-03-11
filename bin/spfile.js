@@ -45,7 +45,7 @@ if ( cmd.name === 'login' ) {
 
 if ( cmd.name === 'fetch' ) {
   login( extract( cmd.args, 'host_url' ) ).then( result => {
-    cmd.args[ 1 ] && ! cmd.silent && console.log( `Fetching file...`, `${extract( cmd.args, 'relative_url' )}/_api/web/GetFileByServerRelativeUrl('${url.parse( cmd.args[ 0 ] ).path}')/$value` );
+    cmd.args[ 1 ] && ! cmd.silent && console.log( `Fetching file...` );
     request({
       url : `${extract( cmd.args, 'host_url' )}/_api/web/GetFileByServerRelativeUrl('${extract( cmd.args, 'relative_url' )}')/$value`,
       jar : result.jar
