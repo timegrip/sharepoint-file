@@ -264,7 +264,7 @@ function show_info ( silent, opts ) {
           `   ${'fetch '.green.bold + (show_args ? '<FILEURL> [FILEPATH] '.green.bold + '...' : ' ....')}`
             + ` Fetches a file and shows its content or saves it`.bold,
         full : [
-          `                                  <FILEURL>  The full Sharpoint URL to the file`,
+          `                                  <FILEURL>  The full Sharepoint URL to the file`,
           `                                  [FILEPATH] File name or file path to save to`,
           ``,
           `                                  If you haven't already authenticated or your session has expired,`,
@@ -279,7 +279,7 @@ function show_info ( silent, opts ) {
           `   ${'login '.green.bold + (show_args ? '<HOSTURL> '.green.bold + '..............' : ' ....')}`
             + ` Authenticates with Sharepoint explicitly`.bold,
         full : [
-          `                                  <HOSTURL> The Sharpoint host URL`,
+          `                                  <HOSTURL> The Sharepoint host URL`,
           ``,
           `                                  Example: spfile login https://your.sharepoint.com`
         ]
