@@ -21,7 +21,7 @@
     "spfile": "./bin/spfile.js"
   },
   "scripts": {
-    "preuninstall": "node bin/spfile.js logout"
+    "preuninstall": "node --harmony bin/spfile.js logout --silent"
   },
   "dependencies": {
     "colors": "^1.1.2",
