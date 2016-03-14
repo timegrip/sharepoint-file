@@ -27,8 +27,8 @@ module.exports = class Cookie {
     return read();
   }
 
-  static create () {
-    return create();
+  static create ( url, fed_auth, rt_fa ) {
+    return create( url, fed_auth, rt_fa );
   }
 
   static clear () {
