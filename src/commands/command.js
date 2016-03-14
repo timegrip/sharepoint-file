@@ -11,5 +11,7 @@ module.exports = class Command {
   }
 
   get args   () { return this[ _args   ]; }
+
   get silent () { return this[ _silent ]; }
+  set silent ( value ) { this[ _silent ] = value; }
 }

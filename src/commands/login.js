@@ -11,7 +11,11 @@ const
   Cookie  = require( '../util/cookie' );
 
 module.exports = class Login extends Command {
-  run () {
+  run ( opts ) {
+    opts = opts || {};
+    if ( opts.silent !== undefined ) {
+      this.silent = opts.silent;
+    }
     return login( this );
   }
 }
