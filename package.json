@@ -1,6 +1,6 @@
 {
   "name": "sharepoint-file",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Sharepoint file operations",
   "homepage": "https://www.npmjs.com/package/sharepoint-file",
   "author": "Zarko Hristovski <zarko@timegrip.no>",
