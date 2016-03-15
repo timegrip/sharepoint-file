@@ -1,8 +1,6 @@
 'use strict';
 
 const
-  os = require( 'os' ),
-
   Sharepoint = require( 'sharepoint-auth' ),
   read       = require( 'read'            ),
 
@@ -21,31 +19,38 @@ module.exports = class Login extends Command {
 }
 
 function login ( context ) {
-  return new Promise( ( resolve, reject ) => {
-    let jar = Cookie.read();
+  return Cookie.restore().then( jar => {
     if ( jar ) {
       ! context.silent && console.log( 'Already logged in.' );
-      return resolve( jar );
+      return jar;
     }
 
-    let url = Parser.getUrl( context.args );
-    query_credentials().then( credentials =>
-      Sharepoint({ auth : credentials, host : url }, ( err, result ) => {
-        if ( err ) {
-          console.error(
-            `Login failed.${os.EOL}Check your host URL and login credentials, then try again.`
-          );
-        }
-        else {
+    return query_credentials().then( credentials =>
+      auth( Parser.getUrl( context.args ), credentials ).then( result => {
+        if ( result.jar ) {
           ! context.silent && console.log( 'Logged in.' );
+          return result.jar;
         }
-        resolve( err
-          ? undefined
-          : Cookie.create( url, result.cookies.FedAuth, result.cookies.rtFa )
-        );
+        console.error( result );
       })
-    ).catch( () => reject() );
+    );
   });
+}
+
+function auth ( host, credentials ) {
+  if ( ! credentials.username.length || ! credentials.password.length ) {
+    return Promise.resolve( 'Missing username or password.' );
+  }
+  return new Promise( resolve =>
+    Sharepoint( { host : host, auth : credentials }, ( err, result ) =>
+      resolve( err
+        ? 'Login failed. Check your host URL and login credentials, then try again.'
+        : {
+          jar : Cookie.save( host, result.cookies.FedAuth, result.cookies.rtFa )
+        }
+      )
+    )
+  );
 }
 
 function query_credentials () {

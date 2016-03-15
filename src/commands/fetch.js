@@ -8,10 +8,9 @@ const
   request         = require( 'request'        ),
   istextorbinary  = require( 'istextorbinary' ),
 
-  Command = require( './command'      ),
-  Login   = require( `./login`        ),
-  Parser  = require( './parser'       ),
-  Cookie  = require( '../util/cookie' );
+  Command = require( './command' ),
+  Login   = require( `./login`   ),
+  Parser  = require( './parser'  );
 
 module.exports = class Fetch extends Command {
   run () {

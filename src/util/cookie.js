@@ -9,26 +9,21 @@ const
     process.env.HOME || process.env.USERPROFILE || process.env.HOMEPATH,
     '.sharepoint-file'
   ),
-  cookie_file_path = path.join( cookie_path, 'cookies.json' );
+  cookie_file_path = path.join( cookie_path, 'cookie_data.json' );
 
-let request, FileCookieStore;
+let request;
 try {
-  request         = require( 'request'                );
-  FileCookieStore = require( 'tough-cookie-filestore' );
+  request = require( 'request' );
 }
 catch ( err ) {}
 
 module.exports = class Cookie {
-  static get path () {
-    return cookie_path;
+  static restore () {
+    return restore();
   }
 
-  static read () {
-    return read();
-  }
-
-  static create ( url, fed_auth, rt_fa ) {
-    return create( url, fed_auth, rt_fa );
+  static save ( url, fed_auth, rt_fa ) {
+    return save( url, fed_auth, rt_fa );
   }
 
   static clear () {
@@ -36,20 +31,23 @@ module.exports = class Cookie {
   }
 }
 
-function read () {
-  try {
-    return request.jar( new FileCookieStore( cookie_file_path ) );
-  }
-  catch ( e ) {}
+function restore () {
+  return new Promise( resolve =>
+    fs.readFile( cookie_file_path, 'utf8', ( err, data ) =>
+      resolve( err ? undefined : toJar( JSON.parse( data ) ) )
+    )
+  );
 }
 
-function create ( url, fed_auth, rt_fa ) {
-  ! fs.existsSync( cookie_path ) && fs.mkdirSync( cookie_path );
-  fs.openSync( cookie_file_path, 'w' );
-  let jar = read();
-  jar.setCookie( request.cookie( `FedAuth=${fed_auth}` ), url );
-  jar.setCookie( request.cookie( `rtFa=${rt_fa}`       ), url );
-  return jar;
+function save ( url, fed_auth, rt_fa ) {
+  let data = { url : url, fed_auth : fed_auth, rt_fa : rt_fa };
+  return new Promise( resolve =>
+    fs.mkdir( cookie_path, () =>
+      fs.writeFile( cookie_file_path, JSON.stringify( data ), err =>
+        resolve( err ? undefined : toJar( data ) )
+      )
+    )
+  );
 }
 
 function clear () {
@@ -69,4 +67,11 @@ function clear () {
       });
     })
   );
+}
+
+function toJar ( data ) {
+  let jar = request.jar();
+  jar.setCookie( request.cookie( `FedAuth=${data.fed_auth}` ), data.url );
+  jar.setCookie( request.cookie( `rtFa=${data.rt_fa}`       ), data.url );
+  return jar;
 }
