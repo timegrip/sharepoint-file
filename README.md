@@ -5,7 +5,7 @@ sharepoint-file
 
 A command-line utility for Sharepoint file operations
 
-:warning: Currently supports download of **small(er) single files** from an online Sharepoint site / file storage.
+:information_source: Currently supports only download of individual files from an online Sharepoint site / file storage.
 
 Installation or update
 ----------------------
