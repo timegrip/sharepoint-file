@@ -35,9 +35,9 @@ function fetch ( context, jar ) {
     request({
       url : `${url}/_api/web/GetFileByServerRelativeUrl('${relative_url}')/$value`,
       jar : jar
-    }).on( 'error', error => {
+    }).on( 'error', err => {
       console.error( `${err.host} ${err.code}`.red.bold );
-      reject( error );
+      reject( err );
     })
     .on( 'response', response => {
       if ( response.statusCode !== 200 ) {
