@@ -32,7 +32,7 @@ module.exports = class Parser {
 function parse ( argv ) {
   let
     opts = {
-      'string'  : [ 'fetch', 'login', 'logout' ],
+      'string'  : [ 'fetch', 'login', 'logout', 'u' ],
       'boolean' : [ 'silent', 'help', 'version' ],
       'default' : {
         'silent'  : false,
@@ -48,12 +48,26 @@ function parse ( argv ) {
 
   parsed = parseArgs( argv, opts );
   return validate({
-    name    : parsed._[ 0 ],
-    args    : parsed._.slice( 1 ),
-    silent  : parsed.silent,
-    help    : parsed.help,
-    version : parsed.version
+    name     : parsed._[ 0 ],
+    args     : parsed._.slice( 1 ),
+    username : parseCredentials( parsed.u, 'username' ),
+    password : parseCredentials( parsed.u, 'password' ),
+    silent   : parsed.silent,
+    help     : parsed.help,
+    version  : parsed.version,
   }, opts[ 'string' ] );
+}
+
+function parseCredentials ( u, type ) {
+  if ( ! u ) return undefined;
+  let fragments = u.split( ':' );
+  if ( type === 'username' ) {
+    return fragments[ 0 ] && fragments[ 0 ].length ? fragments[ 0 ] : undefined;
+  }
+  if ( type === 'password' ) {
+    let password = fragments.slice( 1 ).join( ':' );
+    return password && password.length ? password : undefined;
+  }
 }
 
 function validate ( cmd, strings ) {
