@@ -15,7 +15,8 @@ const
 module.exports = class Fetch extends Command {
   run () {
     return new Login( this ).run({
-      silent : true
+      silent      : true,
+      credentials : this.credentials
     }).then( jar => fetch( this, jar ) );
   }
 }

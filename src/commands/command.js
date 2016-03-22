@@ -21,4 +21,5 @@ module.exports = class Command {
   set silent ( value ) { this[ _silent ] = value; }
 
   get credentials () { return this[ _credentials ]; }
+  set credentials ( value ) { this[ _credentials ] = value; }
 }

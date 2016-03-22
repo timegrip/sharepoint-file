@@ -146,37 +146,41 @@ function show_info ( silent, opts ) {
     info = {
       fetch : {
         minimal : show_args =>
-          `   ${'fetch '.green.bold + (show_args ? '<FILEURL> [FILEPATH] '.green.bold + '...' : ' ....')}`
+          `   ${'fetch '.green.bold + (show_args ? '[options] <FILEURL> [filepath] '.green.bold + '...' : ' ....')}`
             + ` Fetches a file and shows its content or saves it`.bold,
         full : [
-          `                                  <FILEURL>  The full Sharepoint URL to the file`,
-          `                                  [FILEPATH] File name or file path to save to`,
+          `                                            <FILEURL>  The full Sharepoint URL to the file`,
+          `                                            [filepath] File name or file path to save to`,
+          `         ${'[-u]'.yellow.bold} ............................. User credentials as emailaddress:password`,
           ``,
-          `                                  If you haven't already authenticated or your session has expired,`,
-          `                                  you'll be asked to log in`,
-          ``,
-          `                                  Example: spfile fetch https://your.sharepoint.com/path/foo.json`,
-          `                                  Example: spfile fetch https://your.sharepoint.com/path/bar.pdf bar.pdf`
+          `                                            Example: spfile fetch https://your.sharepoint.com/path/foo.json`,
+          `                                            Example: spfile fetch https://your.sharepoint.com/path/bar.pdf bar.pdf`
         ]
       },
       login : {
         minimal : show_args =>
-          `   ${'login '.green.bold + (show_args ? '<HOSTURL> '.green.bold + '..............' : ' ....')}`
+          `   ${'login '.green.bold + (show_args ? '[options] <HOSTURL> '.green.bold + '..............' : ' ....')}`
             + ` Authenticates with Sharepoint explicitly`.bold,
         full : [
-          `                                  <HOSTURL> The Sharepoint host URL`,
+          `                                            <HOSTURL> The Sharepoint host URL`,
+          `         ${'[-u]'.yellow.bold} ............................. User credentials as emailaddress:password`,
           ``,
-          `                                  Example: spfile login https://your.sharepoint.com`
+          `                                            Example: spfile login https://your.sharepoint.com`
         ]
       },
       logout : {
         minimal : show_args =>
-          `   ${'logout '.green.bold + (show_args ? '.......................' : ' ...')}`
+          `   ${'logout '.green.bold + (show_args ? '.................................' : ' ...')}`
             + ` Invalidates your Sharepoint session explicitly`.bold,
         full : [
         ]
       }
-    };
+    },
+    footer = [
+      `${'Options:'.bold}`,
+      ``,
+      `   ${'--silent'.yellow.bold} ............................... Suppresses most console output`
+    ];
 
   if ( silent ) return;
   if ( opts.version ) {
@@ -196,10 +200,11 @@ function show_info ( silent, opts ) {
   console.log( lines( [ version ].concat( header ) ) );
   Object.keys( info ).map( c => {
     if ( opts.minimal ) {
-      console.log( lines([ info[ c ].minimal() ]) )
+      console.log( lines([ info[ c ].minimal() ]) );
     }
     else {
-      console.log( lines([ info[ c ].minimal(true) ].concat( info[ c ].full ) ) )
+      console.log( lines([ info[ c ].minimal(true) ].concat( info[ c ].full ) ) );
     }
   });
+  ! opts.minimal && console.log( lines( footer ) );
 }

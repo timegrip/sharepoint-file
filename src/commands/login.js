@@ -14,6 +14,9 @@ module.exports = class Login extends Command {
     if ( opts.silent !== undefined ) {
       this.silent = opts.silent;
     }
+    if ( opts.credentials !== undefined ) {
+      this.credentials = opts.credentials;
+    }
     return login( this );
   }
 }
