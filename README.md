@@ -21,22 +21,25 @@ $ **spfile** task args
 
 **Available tasks:** (use --help for more info)
 
-    fetch <FILEURL> [FILEPATH] ... Fetches a file and shows its content or saves it
-                                   <FILEURL>  The full Sharepoint URL to the file
-                                   [FILEPATH] File name or file path to save to
+    fetch [options] <FILEURL> [filepath] ... Fetches a file and shows its content or saves it
+                                             <FILEURL>  The full Sharepoint URL to the file
+                                             [filepath] File name or file path to save to
+          [-u] ............................. User credentials as emailaddress:password
 
-                                   If you haven't already authenticated or your session has expired,
-                                   you'll be asked to log in
+                                             Example: spfile fetch https://your.sharepoint.com/path/foo.json
+                                             Example: spfile fetch https://your.sharepoint.com/path/bar.pdf bar.pdf
 
-                                   Example: spfile fetch https://your.sharepoint.com/path/foo.json
-                                   Example: spfile fetch https://your.sharepoint.com/path/bar.pdf bar.pdf
+    login [options] <HOSTURL> .............. Authenticates with Sharepoint explicitly
+                                             <HOSTURL> The Sharepoint host URL
+          [-u] ............................. User credentials as emailaddress:password
 
-    login <HOSTURL> .............. Authenticates with Sharepoint explicitly
-                                   <HOSTURL> The Sharepoint host URL
+                                             Example: spfile login https://your.sharepoint.com
 
-                                   Example: spfile login https://your.sharepoint.com
+    logout ................................. Invalidates your Sharepoint session explicitly
 
-    logout ....................... Invalidates your Sharepoint session explicitly
+**Options:**
+
+    --silent ............................... Suppresses most console output
 
 License
 -------
