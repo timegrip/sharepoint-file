@@ -14,6 +14,9 @@ module.exports = class Login extends Command {
     if ( opts.silent !== undefined ) {
       this.silent = opts.silent;
     }
+    if ( opts.credentials !== undefined ) {
+      this.credentials = opts.credentials;
+    }
     return login( this );
   }
 }
@@ -25,7 +28,7 @@ function login ( context ) {
       return jar;
     }
 
-    return query_credentials().then( credentials =>
+    return query_credentials( context.credentials ).then( credentials =>
       auth( Parser.getUrl( context.args ), credentials ).then( result => {
         if ( result.jar ) {
           ! context.silent && console.log( 'Logged in.' );
@@ -53,19 +56,20 @@ function auth ( host, credentials ) {
   );
 }
 
-function query_credentials () {
-  console.log( 'Please enter your Sharepoint credentials'.gray );
+function query_credentials ( credentials ) {
+  ( ! credentials.username || ! credentials.password )
+    && console.log( 'Please enter your Sharepoint credentials'.gray );
   let query = ( read_opts ) =>
     new Promise( ( resolve, reject ) =>
       read( read_opts, ( err, result ) => err ? reject() : resolve( result ) )
     );
-  return query({
-    prompt  : 'Email address :'.cyan.bold
-  })
-  .then( username => query({
-    prompt  : 'Password      :'.cyan.bold,
-    silent  : true,
-    replace : '*'
-  })
+  return Promise.resolve( credentials.username ? credentials.username : query({
+    prompt : 'Email address :'.cyan.bold
+  })).then( username =>
+    Promise.resolve( credentials.password ? credentials.password : query({
+      prompt  : `Password ${credentials.username?'':'     '}:`.cyan.bold,
+      silent  : true,
+      replace : '*'
+  }))
   .then( password => ({ username : username, password : password })));
 }

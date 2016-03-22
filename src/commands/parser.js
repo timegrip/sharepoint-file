@@ -32,7 +32,7 @@ module.exports = class Parser {
 function parse ( argv ) {
   let
     opts = {
-      'string'  : [ 'fetch', 'login', 'logout' ],
+      'string'  : [ 'fetch', 'login', 'logout', 'u' ],
       'boolean' : [ 'silent', 'help', 'version' ],
       'default' : {
         'silent'  : false,
@@ -48,12 +48,26 @@ function parse ( argv ) {
 
   parsed = parseArgs( argv, opts );
   return validate({
-    name    : parsed._[ 0 ],
-    args    : parsed._.slice( 1 ),
-    silent  : parsed.silent,
-    help    : parsed.help,
-    version : parsed.version
+    name     : parsed._[ 0 ],
+    args     : parsed._.slice( 1 ),
+    username : parseCredentials( parsed.u, 'username' ),
+    password : parseCredentials( parsed.u, 'password' ),
+    silent   : parsed.silent,
+    help     : parsed.help,
+    version  : parsed.version,
   }, opts[ 'string' ] );
+}
+
+function parseCredentials ( u, type ) {
+  if ( ! u ) return undefined;
+  let fragments = u.split( ':' );
+  if ( type === 'username' ) {
+    return fragments[ 0 ] && fragments[ 0 ].length ? fragments[ 0 ] : undefined;
+  }
+  if ( type === 'password' ) {
+    let password = fragments.slice( 1 ).join( ':' );
+    return password && password.length ? password : undefined;
+  }
 }
 
 function validate ( cmd, strings ) {
@@ -132,37 +146,41 @@ function show_info ( silent, opts ) {
     info = {
       fetch : {
         minimal : show_args =>
-          `   ${'fetch '.green.bold + (show_args ? '<FILEURL> [FILEPATH] '.green.bold + '...' : ' ....')}`
+          `   ${'fetch '.green.bold + (show_args ? '[options] <FILEURL> [filepath] '.green.bold + '...' : ' ....')}`
             + ` Fetches a file and shows its content or saves it`.bold,
         full : [
-          `                                  <FILEURL>  The full Sharepoint URL to the file`,
-          `                                  [FILEPATH] File name or file path to save to`,
+          `                                            <FILEURL>  The full Sharepoint URL to the file`,
+          `                                            [filepath] File name or file path to save to`,
+          `         ${'[-u]'.yellow.bold} ............................. User credentials as emailaddress:password`,
           ``,
-          `                                  If you haven't already authenticated or your session has expired,`,
-          `                                  you'll be asked to log in`,
-          ``,
-          `                                  Example: spfile fetch https://your.sharepoint.com/path/foo.json`,
-          `                                  Example: spfile fetch https://your.sharepoint.com/path/bar.pdf bar.pdf`
+          `                                            Example: spfile fetch https://your.sharepoint.com/path/foo.json`,
+          `                                            Example: spfile fetch https://your.sharepoint.com/path/bar.pdf bar.pdf`
         ]
       },
       login : {
         minimal : show_args =>
-          `   ${'login '.green.bold + (show_args ? '<HOSTURL> '.green.bold + '..............' : ' ....')}`
+          `   ${'login '.green.bold + (show_args ? '[options] <HOSTURL> '.green.bold + '..............' : ' ....')}`
             + ` Authenticates with Sharepoint explicitly`.bold,
         full : [
-          `                                  <HOSTURL> The Sharepoint host URL`,
+          `                                            <HOSTURL> The Sharepoint host URL`,
+          `         ${'[-u]'.yellow.bold} ............................. User credentials as emailaddress:password`,
           ``,
-          `                                  Example: spfile login https://your.sharepoint.com`
+          `                                            Example: spfile login https://your.sharepoint.com`
         ]
       },
       logout : {
         minimal : show_args =>
-          `   ${'logout '.green.bold + (show_args ? '.......................' : ' ...')}`
+          `   ${'logout '.green.bold + (show_args ? '.................................' : ' ...')}`
             + ` Invalidates your Sharepoint session explicitly`.bold,
         full : [
         ]
       }
-    };
+    },
+    footer = [
+      `${'Options:'.bold}`,
+      ``,
+      `   ${'--silent'.yellow.bold} ............................... Suppresses most console output`
+    ];
 
   if ( silent ) return;
   if ( opts.version ) {
@@ -182,10 +200,11 @@ function show_info ( silent, opts ) {
   console.log( lines( [ version ].concat( header ) ) );
   Object.keys( info ).map( c => {
     if ( opts.minimal ) {
-      console.log( lines([ info[ c ].minimal() ]) )
+      console.log( lines([ info[ c ].minimal() ]) );
     }
     else {
-      console.log( lines([ info[ c ].minimal(true) ].concat( info[ c ].full ) ) )
+      console.log( lines([ info[ c ].minimal(true) ].concat( info[ c ].full ) ) );
     }
   });
+  ! opts.minimal && console.log( lines( footer ) );
 }
