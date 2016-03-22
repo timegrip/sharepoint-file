@@ -129,6 +129,11 @@
       "from": "extend@>=3.0.0 <3.1.0",
       "resolved": "https://registry.npmjs.org/extend/-/extend-3.0.0.tgz"
     },
+    "extract-opts": {
+      "version": "2.2.0",
+      "from": "extract-opts@>=2.2.0 <3.0.0",
+      "resolved": "https://registry.npmjs.org/extract-opts/-/extract-opts-2.2.0.tgz"
+    },
     "extsprintf": {
       "version": "1.0.2",
       "from": "extsprintf@1.0.2",
@@ -153,6 +158,11 @@
       "version": "1.2.0",
       "from": "generate-object-property@>=1.1.0 <2.0.0",
       "resolved": "https://registry.npmjs.org/generate-object-property/-/generate-object-property-1.2.0.tgz"
+    },
+    "getmac": {
+      "version": "1.0.7",
+      "from": "getmac@latest",
+      "resolved": "https://registry.npmjs.org/getmac/-/getmac-1.0.7.tgz"
     },
     "graceful-readlink": {
       "version": "1.0.1",
@@ -388,6 +398,11 @@
       "version": "0.14.1",
       "from": "tweetnacl@>=0.13.0 <1.0.0",
       "resolved": "https://registry.npmjs.org/tweetnacl/-/tweetnacl-0.14.1.tgz"
+    },
+    "typechecker": {
+      "version": "2.0.8",
+      "from": "typechecker@>=2.0.1 <2.1.0",
+      "resolved": "https://registry.npmjs.org/typechecker/-/typechecker-2.0.8.tgz"
     },
     "typedarray": {
       "version": "0.0.6",
