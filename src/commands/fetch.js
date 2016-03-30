@@ -44,6 +44,9 @@ function fetch ( context, jar ) {
       if ( response.statusCode !== 200 ) {
         parse_request_error( response ).then( msg => {
           console.error( msg.red.bold );
+          if ( response.statusCode === 403 ) {
+            // FIXME: re-login if access denied
+          }
           reject( msg );
         });
         return;
